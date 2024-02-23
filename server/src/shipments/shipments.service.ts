@@ -22,4 +22,16 @@ export class ShipmentsService {
     console.log({ orders, addresses, carriers, boxes });
     return [];
   }
+
+  computeShippingDate(orderDate: Date, cutOffTime: string): Date {
+    const [cutOffHours, cutOffMinutes] = cutOffTime.split(':').map(Number);
+    const cutOffDate = new Date(orderDate);
+    cutOffDate.setUTCHours(cutOffHours, cutOffMinutes, 0, 0);
+    const shippingDate = new Date(orderDate);
+    shippingDate.setUTCHours(0, 0, 0, 0);
+    if (orderDate >= cutOffDate) {
+      shippingDate.setDate(shippingDate.getDate() + 1);
+    }
+    return shippingDate;
+  }
 }

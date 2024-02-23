@@ -20,4 +20,22 @@ describe('ShipmentsService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  describe('computeShippingDate', () => {
+    it('should return the same day when dateOrder is before cutOffTime', () => {
+      const orderDate = new Date('2024-02-10T15:46:04.151Z');
+      const cutOffTime = '16:00';
+      const expectedShippingDate = new Date('2024-02-10T00:00:00.000Z');
+      const shippingDate = service.computeShippingDate(orderDate, cutOffTime);
+      expect(shippingDate).toStrictEqual(expectedShippingDate);
+    });
+
+    it('should return the next day when dateOrder is after cutOffTime', () => {
+      const orderDate = new Date('2024-02-10T16:46:04.151Z');
+      const cutOffTime = '16:00';
+      const expectedShippingDate = new Date('2024-02-11T00:00:00.000Z');
+      const shippingDate = service.computeShippingDate(orderDate, cutOffTime);
+      expect(shippingDate).toStrictEqual(expectedShippingDate);
+    });
+  });
 });
