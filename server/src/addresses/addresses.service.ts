@@ -15,4 +15,8 @@ export class AddressesService {
     );
     return data;
   }
+
+  getFullAddress(address: Address): string {
+    return `${address.street}, ${address.complement ? address.complement + ', ' : ''}${address.neighborhood}, ${address.zipcode}, ${address.city}/${address.state}`;
+  }
 }
