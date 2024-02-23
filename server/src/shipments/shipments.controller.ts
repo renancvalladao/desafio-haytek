@@ -7,7 +7,7 @@ export class ShipmentsController {
   constructor(private readonly shipmentsService: ShipmentsService) {}
 
   @Get()
-  findAll(): Shipment[] {
+  findAll(): Promise<Shipment[]> {
     return this.shipmentsService.findAll();
   }
 }

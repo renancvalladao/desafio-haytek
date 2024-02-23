@@ -1,9 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { Address } from './interfaces/address.interface';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class AddressesService {
-  findAll(): Address[] {
-    return [];
+  constructor(private readonly httpService: HttpService) {}
+
+  async findAll(): Promise<Address[]> {
+    const { data } = await firstValueFrom(
+      this.httpService.get<Address[]>(
+        'https://stg-api.haytek.com.br/api/v1/test-haytek-api/adresses',
+      ),
+    );
+    return data;
   }
 }
