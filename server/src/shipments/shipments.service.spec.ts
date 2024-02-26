@@ -4,6 +4,9 @@ import { Box } from 'src/boxes/interfaces/box.interface';
 import { Order } from 'src/orders/interfaces/order.interface';
 import { createMock, DeepMocked } from '@golevelup/ts-jest';
 import { AddressesService } from 'src/addresses/addresses.service';
+import { BoxesService } from 'src/boxes/boxes.service';
+import { CarriersService } from 'src/carriers/carriers.service';
+import { OrdersService } from 'src/orders/orders.service';
 import { Shipment } from './interfaces/shipment.interface';
 import { PackedBox } from './interfaces/packed-box.interface';
 import carriers from './mocks/carriers.mock';
@@ -12,6 +15,7 @@ import boxes from './mocks/boxes.mock';
 
 describe('ShipmentsService', () => {
   let service: ShipmentsService;
+  let ordersService: DeepMocked<OrdersService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -21,11 +25,18 @@ describe('ShipmentsService', () => {
       .compile();
 
     service = module.get<ShipmentsService>(ShipmentsService);
+    ordersService = module.get<DeepMocked<OrdersService>>(OrdersService);
     const addressesService =
       module.get<DeepMocked<AddressesService>>(AddressesService);
     addressesService.getFullAddress.mockImplementation(
       (address) => `${address.Id}`,
     );
+    addressesService.findAll.mockReturnValue(Promise.resolve(addresses));
+    const boxesService = module.get<DeepMocked<BoxesService>>(BoxesService);
+    boxesService.findAll.mockReturnValue(Promise.resolve(boxes));
+    const carriersService =
+      module.get<DeepMocked<CarriersService>>(CarriersService);
+    carriersService.findAll.mockReturnValue(Promise.resolve(carriers));
   });
 
   it('should be defined', () => {
@@ -226,4 +237,110 @@ describe('ShipmentsService', () => {
       expect(packedShipment.boxes).toStrictEqual(expectedBoxes);
     });
   });
+
+  describe('packShipmentBoxes', () => {
+    it('should return an empty array when there are no orders', async () => {
+      ordersService.findAll.mockReturnValue(Promise.resolve([]));
+      const shipments = await service.computeAll();
+      expect(shipments.length).toBe(0);
+    });
+
+    it('should return the expected shipments', async () => {
+      const orderA: Order = {
+        Id: 'A',
+        addressId: addresses[0].Id,
+        carrierId: carriers[0].Id,
+        createdAt: '2024-02-10T10:00:00.000Z',
+        quantity: 5,
+      };
+      const orderB: Order = {
+        ...orderA,
+        Id: 'B',
+        quantity: 7,
+      };
+      const expectedBoxesAB: PackedBox[] = [
+        { type: 'M', quantity: 10, orderIds: ['A', 'B'] },
+        { type: 'P', quantity: 2, orderIds: ['B'] },
+      ]; // Orders A and B are in the same shipment
+      const orderC: Order = {
+        ...orderA,
+        Id: 'C',
+        addressId: addresses[1].Id,
+        quantity: 12,
+      };
+      const expectedBoxesC: PackedBox[] = [
+        { type: 'M', quantity: 10, orderIds: ['C'] },
+        { type: 'P', quantity: 2, orderIds: ['C'] },
+      ];
+      const orderD: Order = {
+        ...orderA,
+        Id: 'D',
+        carrierId: carriers[1].Id,
+        quantity: 45,
+      };
+      const expectedBoxesD: PackedBox[] = [
+        { type: 'G', quantity: 30, orderIds: ['D'] },
+        { type: 'M', quantity: 10, orderIds: ['D'] },
+        { type: 'P', quantity: 5, orderIds: ['D'] },
+      ];
+      const orderE: Order = {
+        ...orderA,
+        Id: 'E',
+        createdAt: '2024-02-11T10:00:00.000Z',
+        quantity: 60,
+      };
+      const expectedBoxesE: PackedBox[] = [
+        { type: 'G', quantity: 30, orderIds: ['E'] },
+        { type: 'G', quantity: 30, orderIds: ['E'] },
+      ];
+      ordersService.findAll.mockReturnValue(
+        Promise.resolve([orderA, orderB, orderC, orderD, orderE]),
+      );
+      const shipments = await service.computeAll();
+
+      expect(shipments.length).toBe(4);
+
+      verifyShipment(
+        shipments[0],
+        expectedBoxesAB,
+        orderA.addressId,
+        '2024-02-10T00:00:00.000Z',
+        'Gollog',
+      );
+      verifyShipment(
+        shipments[1],
+        expectedBoxesC,
+        orderC.addressId,
+        '2024-02-10T00:00:00.000Z',
+        'Gollog',
+      );
+      verifyShipment(
+        shipments[2],
+        expectedBoxesD,
+        orderD.addressId,
+        '2024-02-10T00:00:00.000Z',
+        'Tam',
+      );
+      verifyShipment(
+        shipments[3],
+        expectedBoxesE,
+        orderE.addressId,
+        '2024-02-11T00:00:00.000Z',
+        'Gollog',
+      );
+    });
+  });
 });
+
+const verifyShipment = (
+  shipment: Shipment,
+  expectedBoxes: PackedBox[],
+  address: string,
+  shippingDate: string,
+  carrier: string,
+) => {
+  expect(shipment.boxes).toStrictEqual(expectedBoxes);
+  expect(shipment.address).toBe(address);
+  expect(shipment.shippingDate).toBe(shippingDate);
+  expect(shipment.carrier).toBe(carrier);
+};
