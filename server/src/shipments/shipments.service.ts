@@ -20,7 +20,7 @@ export class ShipmentsService {
     private readonly boxesService: BoxesService,
   ) {}
 
-  async findAll(): Promise<Shipment[]> {
+  async computeAll(): Promise<Shipment[]> {
     const orders = await this.ordersService.findAll();
     const addresses = await this.addressesService.findAll();
     const carriers = await this.carriersService.findAll();
