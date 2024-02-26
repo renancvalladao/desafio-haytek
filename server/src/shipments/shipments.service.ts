@@ -5,6 +5,11 @@ import { AddressesService } from 'src/addresses/addresses.service';
 import { CarriersService } from 'src/carriers/carriers.service';
 import { BoxesService } from 'src/boxes/boxes.service';
 import { Box } from 'src/boxes/interfaces/box.interface';
+import { Order } from 'src/orders/interfaces/order.interface';
+import { Address } from 'src/addresses/interfaces/address.interface';
+import { Carrier } from 'src/carriers/interfaces/carrier.interface';
+import { randomUUID } from 'crypto';
+import { PackedBox } from './interfaces/packed-box.interface';
 
 @Injectable()
 export class ShipmentsService {
@@ -20,8 +25,99 @@ export class ShipmentsService {
     const addresses = await this.addressesService.findAll();
     const carriers = await this.carriersService.findAll();
     const boxes = await this.boxesService.findAll();
-    console.log({ orders, addresses, carriers, boxes });
-    return [];
+    const [shipments, ordersByShipment] = this.organizeOrdersInShipments(
+      orders,
+      addresses,
+      carriers,
+    );
+    const packedShipments = shipments.map((shipment) => {
+      const shipmentOrders = ordersByShipment[shipment.Id];
+      return this.packShipmentBoxes(shipment, boxes, shipmentOrders);
+    });
+
+    return packedShipments;
+  }
+
+  packShipmentBoxes(
+    shipment: Shipment,
+    boxes: Box[],
+    shipmentOrders: Order[],
+  ): Shipment {
+    let totalQuantity = 0;
+    shipmentOrders.forEach((order) => (totalQuantity += order.quantity));
+
+    const boxesDistribution = this.computeBoxesDistribution(
+      totalQuantity,
+      boxes,
+    );
+    let currentOrderIndex = 0;
+    const packedBoxes: PackedBox[] = boxesDistribution.map((box) => {
+      const boxCapactity = Number(box.maxQuantity);
+      const packedBox = { type: box.type, quantity: 0, orderIds: [] };
+      while (
+        packedBox.quantity < boxCapactity &&
+        currentOrderIndex < shipmentOrders.length
+      ) {
+        const currentOrder = shipmentOrders[currentOrderIndex];
+        const quantityTaken = Math.min(
+          currentOrder.quantity,
+          boxCapactity - packedBox.quantity,
+        );
+        packedBox.quantity += quantityTaken;
+        packedBox.orderIds.push(currentOrder.Id);
+        currentOrder.quantity -= quantityTaken;
+        if (currentOrder.quantity === 0) currentOrderIndex++;
+      }
+      return packedBox;
+    });
+    return { ...shipment, boxes: packedBoxes };
+  }
+
+  organizeOrdersInShipments(
+    orders: Order[],
+    addresses: Address[],
+    carriers: Carrier[],
+  ): [Shipment[], { [key: string]: Order[] }] {
+    const shipments: Shipment[] = [];
+    const ordersByShipment: { [key: string]: Order[] } = {};
+    const addressesMap: { [key: string]: Address } = {};
+    addresses.forEach((address) => (addressesMap[address.Id] = address));
+    const carriersMap: { [key: string]: Carrier } = {};
+    carriers.forEach((carrier) => (carriersMap[carrier.Id] = carrier));
+
+    orders.forEach((order) => {
+      const address = addressesMap[order.addressId];
+      const carrier = carriersMap[order.carrierId];
+      const fullAddress = this.addressesService.getFullAddress(address);
+
+      const shippingDate = this.computeShippingDate(
+        new Date(order.createdAt),
+        carrier.cutOffTime,
+      );
+
+      let currentShipment = shipments.find(
+        (shipment) =>
+          shipment.carrier === carrier.name &&
+          new Date(shipment.shippingDate).getTime() ===
+            shippingDate.getTime() &&
+          shipment.address === fullAddress,
+      );
+
+      if (!currentShipment) {
+        currentShipment = {
+          Id: randomUUID(),
+          shippingDate: shippingDate.toISOString(),
+          carrier: carrier.name,
+          address: fullAddress,
+          boxes: [],
+        };
+        shipments.push(currentShipment);
+        ordersByShipment[currentShipment.Id] = [];
+      }
+      ordersByShipment[currentShipment.Id].push({ ...order });
+    });
+
+    return [shipments, ordersByShipment];
   }
 
   computeBoxesDistribution(
