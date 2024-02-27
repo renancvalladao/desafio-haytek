@@ -17,3 +17,24 @@
 - [React](https://react.dev/)
 - [Typescript](https://www.typescriptlang.org/)
 - [Mantine](https://mantine.dev/)
+
+## Configurações
+
+Existem dois projetos neste repositório: server e client, cada um com suas configurações.
+
+### Server
+
+Deve-se criar um arquivo `.env` na pasta `server`, com as seguintes configurações:
+
+- `PORT`: porta em que a aplicação será executada.
+- `HAYTEK_API_URL`: URL da API fornecida pela Haytek.
+
+Um exemplo deste arquivo `.env.example` está disponível na pasta `server`.
+
+### Client
+
+Deve-se criar um arquivo `.env.local` na pasta `client`, com as seguintes configurações:
+
+- `VITE_SERVER`: URL da aplicação do projeto `server` a ser utilizada.
+
+Um exemplo deste arquivo `.env.example` está disponível na pasta `client`.
