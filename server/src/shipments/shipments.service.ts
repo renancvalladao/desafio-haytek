@@ -158,6 +158,34 @@ export class ShipmentsService {
     return bestDistributions[quantity];
   }
 
+  computeBoxesDistributionGreedy(quantity: number, boxes: Box[]): Box[] {
+    let boxesDistribution: Box[] = [];
+    let quantityLeft = quantity;
+    let remainder = 0;
+    const sortedBoxes = [...boxes];
+    sortedBoxes.sort((a, b) => Number(b.maxQuantity) - Number(a.maxQuantity));
+
+    for (const box of sortedBoxes) {
+      if (quantityLeft === 0) break;
+      const boxCapactity = Number(box.maxQuantity);
+      const distribution = Array(Math.ceil(quantityLeft / boxCapactity)).fill(
+        box,
+      );
+      if (
+        boxesDistribution.length === 0 ||
+        remainder >= Number(boxes[0].maxQuantity)
+      ) {
+        boxesDistribution.pop();
+        boxesDistribution = boxesDistribution.concat(distribution);
+        const quantityFilled = quantityLeft % boxCapactity;
+        quantityLeft = quantityFilled;
+        remainder = boxCapactity - quantityFilled;
+      }
+    }
+
+    return boxesDistribution;
+  }
+
   computeShippingDate(orderDate: Date, cutOffTime: string): Date {
     const [cutOffHours, cutOffMinutes] = cutOffTime.split(':').map(Number);
     const cutOffDate = new Date(orderDate);

@@ -62,12 +62,6 @@ describe('ShipmentsService', () => {
   });
 
   describe('computeBoxesDistribution', () => {
-    const boxes: Box[] = [
-      { type: 'P', maxQuantity: '5' },
-      { type: 'M', maxQuantity: '10' },
-      { type: 'G', maxQuantity: '30' },
-    ];
-
     it('should return an empty array when total quantity is zero', () => {
       const totalQuantity = 0;
       const expectedDistribution = [];
@@ -75,7 +69,12 @@ describe('ShipmentsService', () => {
         totalQuantity,
         boxes,
       );
+      const greedyDistribution = service.computeBoxesDistributionGreedy(
+        totalQuantity,
+        boxes,
+      );
       expect(distribution).toStrictEqual(expectedDistribution);
+      expect(greedyDistribution).toStrictEqual(expectedDistribution);
     });
 
     it('should return the least maximum capacity', () => {
@@ -85,7 +84,12 @@ describe('ShipmentsService', () => {
         totalQuantity,
         boxes,
       );
+      const greedyDistribution = service.computeBoxesDistributionGreedy(
+        totalQuantity,
+        boxes,
+      );
       expect(distribution).toStrictEqual(expectedDistribution);
+      expect(greedyDistribution).toStrictEqual(expectedDistribution);
     });
 
     it('should return the least number of boxes', () => {
@@ -95,7 +99,32 @@ describe('ShipmentsService', () => {
         totalQuantity,
         boxes,
       );
+      const greedyDistribution = service.computeBoxesDistributionGreedy(
+        totalQuantity,
+        boxes,
+      );
       expect(distribution).toStrictEqual(expectedDistribution);
+      expect(greedyDistribution).toStrictEqual(expectedDistribution);
+    });
+
+    it('should give the optimal result while the greedy algorithm does not', () => {
+      const alternativeBoxes: Box[] = [
+        { type: 'P', maxQuantity: '2' },
+        { type: 'M', maxQuantity: '5' },
+      ];
+
+      const totalQuantity = 4;
+      const expectedDistribution = [alternativeBoxes[0], alternativeBoxes[0]];
+      const distribution = service.computeBoxesDistribution(
+        totalQuantity,
+        alternativeBoxes,
+      );
+      const greedyDistribution = service.computeBoxesDistributionGreedy(
+        totalQuantity,
+        alternativeBoxes,
+      );
+      expect(distribution).toStrictEqual(expectedDistribution);
+      expect(greedyDistribution).not.toStrictEqual(expectedDistribution);
     });
   });
 
