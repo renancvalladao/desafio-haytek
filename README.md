@@ -38,3 +38,35 @@ Deve-se criar um arquivo `.env.local` na pasta `client`, com as seguintes config
 - `VITE_SERVER`: URL da aplicação do projeto `server` a ser utilizada.
 
 Um exemplo deste arquivo `.env.example` está disponível na pasta `client`.
+
+## Como executar
+
+Foi utilizado o `yarn` como gerenciador de pacotes, então é necessário que esteja instalado antes de prosseguir.
+
+### Server
+
+Após configurar corretamente o arquivo `.env`, a partir da raíz do repositório:
+
+```bash
+cd server
+# Instalar dependências
+yarn
+# Iniciar aplicação
+yarn start
+```
+
+Após isso, a aplicação está executando na porta definida no arquivo `.env`, acessível através de `http://localhost:3000/`.
+
+### Client
+
+Após configurar corretamente o arquivo `.env.local`, a partir da raíz do repositório:
+
+```bash
+cd client
+# Instalar dependências
+yarn
+# Iniciar aplicação
+yarn dev
+```
+
+Após isso, a aplicação está executando na porta `5173`, acessível através de `http://localhost:5173/`.
