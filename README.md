@@ -61,7 +61,7 @@ yarn
 yarn start
 ```
 
-Após isso, a aplicação está executando na porta definida no arquivo `.env`, acessível através de `http://localhost:3000/shipments`.
+Após isso, a aplicação está executando na porta definida no arquivo `.env`, acessível através de `http://localhost:{PORT}/shipments`.
 
 ### Client
 
@@ -120,7 +120,7 @@ yarn
 yarn test
 ```
 
-Além disso, foi configurada uma Github Action para executar os testes a cada commit na branch `main`.
+Além disso, foi configurada uma GitHub Action para executar os testes a cada commit na branch `main`.
 
 ## Exemplo da aplicação
 
