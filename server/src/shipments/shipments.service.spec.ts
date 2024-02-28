@@ -137,6 +137,15 @@ describe('ShipmentsService', () => {
       quantity: 5,
     };
 
+    it('should return an empty array when there are no orders', () => {
+      const [shipments] = service.organizeOrdersInShipments(
+        [],
+        addresses,
+        carriers,
+      );
+      expect(shipments.length).toBe(0);
+    });
+
     it('should organize orders from different dates in different shipments', () => {
       const orderB: Order = {
         ...orderA,
@@ -208,6 +217,12 @@ describe('ShipmentsService', () => {
       shippingDate: '2024-02-10T00:00:00.000Z',
       boxes: [],
     };
+
+    it('should return an empty array when there are no orders', () => {
+      const expectedBoxes: PackedBox[] = [];
+      const packedShipment = service.packShipmentBoxes(shipment, boxes, []);
+      expect(packedShipment.boxes).toStrictEqual(expectedBoxes);
+    });
 
     it('should pack an order into a box', () => {
       const order: Order = {
