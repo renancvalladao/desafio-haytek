@@ -11,12 +11,14 @@
 - [Typescript](https://www.typescriptlang.org/)
 - [Axios](https://axios-http.com/)
 - [Jest](https://jestjs.io/)
+- [Vercel](https://vercel.com/)
 
 ### Frontend
 
 - [React](https://react.dev/)
 - [Typescript](https://www.typescriptlang.org/)
 - [Mantine](https://mantine.dev/)
+- [Vercel](https://vercel.com/)
 
 ## Configurações
 
@@ -42,6 +44,10 @@ Um exemplo deste arquivo `.env.example` está disponível na pasta `client`.
 ## Como executar
 
 Foi utilizado o `yarn` como gerenciador de pacotes, então é necessário que esteja instalado antes de prosseguir.
+
+```bash
+npm install --global yarn
+```
 
 ### Server
 
@@ -114,6 +120,12 @@ yarn
 yarn test
 ```
 
+Além disso, foi configurada uma Github Action para executar os testes a cada commit na branch `main`.
+
 ## Exemplo da aplicação
 
 ![Aplicação em execução](example.png)
+
+## Deployment
+
+Foi realizado o deployment de ambas as aplicações, server e client, utilizando a [Vercel](https://vercel.com/), disponíveis em https://desafio-haytek-server.vercel.app/shipments e https://desafio-haytek-client.vercel.app/ respectivamente.
